@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any
 
 
@@ -35,7 +35,7 @@ class Settings:
         return asdict(self)
 
     @classmethod
-    def from_env(cls, env: dict[str, str] | None = None) -> "Settings":
+    def from_env(cls, env: dict[str, str] | None = None) -> Settings:
         source = env if env is not None else dict(os.environ)
 
         def _str(key: str, default: str) -> str:
@@ -48,7 +48,9 @@ class Settings:
             try:
                 return int(raw)
             except ValueError as exc:
-                raise ConfigError(f"GATEWAY_{key} must be an integer, got {raw!r}") from exc
+                raise ConfigError(
+                    f"GATEWAY_{key} must be an integer, got {raw!r}"
+                ) from exc
 
         def _float(key: str, default: float) -> float:
             raw = source.get(f"GATEWAY_{key}")

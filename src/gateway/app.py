@@ -16,6 +16,7 @@ ordering a property of the design instead of a race that shows up under load.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from contextlib import asynccontextmanager
 from typing import Any
@@ -42,7 +43,9 @@ FATAL_CODES = frozenset(
 )
 
 
-def create_app(settings: Settings | None = None, metrics: Metrics | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None, metrics: Metrics | None = None
+) -> FastAPI:
     """Build the ASGI app. Explicit factory so tests can inject configuration."""
     config = settings or Settings.from_env()
     config.validate()
@@ -54,7 +57,9 @@ def create_app(settings: Settings | None = None, metrics: Metrics | None = None)
         # rather than on the first client connection.
         app.state.backend_factory = lambda: backends.create(config.backend)
         app.state.backend_factory()
-        logger.info("gateway ready: backend=%s queue=%d", config.backend, config.queue_size)
+        logger.info(
+            "gateway ready: backend=%s queue=%d", config.backend, config.queue_size
+        )
         yield
 
     app = FastAPI(
@@ -137,8 +142,13 @@ def create_app(settings: Settings | None = None, metrics: Metrics | None = None)
             # Nothing to transcribe until the audio contract is agreed. Waiting on
             # both events means a client that disconnects before `start` unwinds
             # cleanly instead of hanging this task forever.
-            waiters = [asyncio.create_task(started.wait()), asyncio.create_task(disconnected.wait())]
-            done, pending = await asyncio.wait(waiters, return_when=asyncio.FIRST_COMPLETED)
+            waiters = [
+                asyncio.create_task(started.wait()),
+                asyncio.create_task(disconnected.wait()),
+            ]
+            _done, pending = await asyncio.wait(
+                waiters, return_when=asyncio.FIRST_COMPLETED
+            )
             for task in pending:
                 task.cancel()
             if not started.is_set():
@@ -168,7 +178,9 @@ def create_app(settings: Settings | None = None, metrics: Metrics | None = None)
 
         sender = asyncio.create_task(send_loop())
         guard = asyncio.create_task(guard_loop())
-        idle = asyncio.create_task(drain_with_timeout(session, config.idle_timeout_seconds))
+        idle = asyncio.create_task(
+            drain_with_timeout(session, config.idle_timeout_seconds)
+        )
 
         try:
             await asyncio.gather(read_loop(), transcribe_loop())
@@ -181,10 +193,8 @@ def create_app(settings: Settings | None = None, metrics: Metrics | None = None)
             await outbound.put(None)
             await sender
             if not disconnected.is_set():
-                try:
+                with contextlib.suppress(RuntimeError):
                     await websocket.close()
-                except RuntimeError:
-                    pass
 
     return app
 

@@ -6,7 +6,7 @@ module importing every vendor SDK at startup.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from gateway.backends.base import ASRBackend, AudioFormat, BackendError, Transcript
 from gateway.backends.mock import EchoBackend, MockBackend
@@ -40,9 +40,9 @@ __all__ = [
     "ASRBackend",
     "AudioFormat",
     "BackendError",
-    "Transcript",
-    "MockBackend",
     "EchoBackend",
+    "MockBackend",
+    "Transcript",
     "available",
     "create",
     "register",

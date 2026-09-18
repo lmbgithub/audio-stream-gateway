@@ -39,7 +39,7 @@ def test_buffer_drops_the_oldest_chunk_when_full():
     buf = AudioBuffer(2)
     buf.push(b"a")
     buf.push(b"b")
-    assert buf.push(b"c") is False   # signalled, not silent
+    assert buf.push(b"c") is False  # signalled, not silent
     assert buf.dropped == 1
     assert list(buf._items) == [b"b", b"c"]  # newest retained, oldest gone
 

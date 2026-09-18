@@ -14,7 +14,9 @@ from gateway.protocol import (
 
 
 def test_decodes_a_known_message():
-    message, payload = decode_client_frame(json.dumps({"type": "start", "sample_rate": 8000}))
+    message, payload = decode_client_frame(
+        json.dumps({"type": "start", "sample_rate": 8000})
+    )
     assert message is ClientMessage.START
     assert payload["sample_rate"] == 8000
 
@@ -71,7 +73,13 @@ def test_start_request_rejects_non_numeric_sample_rate():
 
 def test_transcript_frame_shape():
     frame = transcript_frame(
-        session_id="s1", seq=3, text="hello", is_final=True, start_ms=0, end_ms=500, confidence=0.9123456
+        session_id="s1",
+        seq=3,
+        text="hello",
+        is_final=True,
+        start_ms=0,
+        end_ms=500,
+        confidence=0.9123456,
     )
     assert frame["type"] == ServerMessage.FINAL.value
     assert frame["is_final"] is True

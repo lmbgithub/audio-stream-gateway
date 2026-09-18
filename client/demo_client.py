@@ -56,12 +56,16 @@ async def run(args: argparse.Namespace) -> int:
 
     print(f"connecting to {args.url}")
     async with websockets.connect(args.url) as ws:
-        await ws.send(json.dumps({
-            "type": "start",
-            "sample_rate": args.sample_rate,
-            "encoding": "linear16",
-            "channels": 1,
-        }))
+        await ws.send(
+            json.dumps(
+                {
+                    "type": "start",
+                    "sample_rate": args.sample_rate,
+                    "encoding": "linear16",
+                    "channels": 1,
+                }
+            )
+        )
         ready = json.loads(await ws.recv())
         if ready.get("type") != "ready":
             print(f"server refused the session: {ready}")
@@ -89,7 +93,12 @@ async def run(args: argparse.Namespace) -> int:
                     return
                 elif kind == "closed":
                     print("\nserver-side summary:")
-                    for key in ("duration_ms", "ttfb_ms", "chunks_received", "chunks_dropped"):
+                    for key in (
+                        "duration_ms",
+                        "ttfb_ms",
+                        "chunks_received",
+                        "chunks_dropped",
+                    ):
                         print(f"  {key:18} {frame.get(key)}")
                     return
 
@@ -108,15 +117,22 @@ async def run(args: argparse.Namespace) -> int:
         await receiver
 
     if first_audio_at and first_transcript_at:
-        print(f"\nclient-observed TTFB: {(first_transcript_at - first_audio_at) * 1000:.1f} ms")
+        print(
+            f"\nclient-observed TTFB: "
+            f"{(first_transcript_at - first_audio_at) * 1000:.1f} ms"
+        )
     print(f"transcript: {' '.join(finals)}")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Stream audio to the gateway and print transcripts.")
+    parser = argparse.ArgumentParser(
+        description="Stream audio to the gateway and print transcripts."
+    )
     parser.add_argument("--url", default="ws://localhost:8000/v1/stream")
-    parser.add_argument("--seconds", type=float, default=3.0, help="length of synthetic audio")
+    parser.add_argument(
+        "--seconds", type=float, default=3.0, help="length of synthetic audio"
+    )
     parser.add_argument("--sample-rate", type=int, default=16000)
     parser.add_argument("--file", help="raw 16-bit PCM file to stream instead of a tone")
     args = parser.parse_args()

@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from gateway.app import create_app
+from gateway.backends.base import BackendError
 from gateway.config import Settings
 from gateway.metrics import Metrics
 
@@ -154,14 +155,16 @@ def test_backpressure_drops_are_reported_in_the_close_frame(meter):
     backends.register("slow", lambda: MockBackend(emit_delay=0.02))
     try:
         settings = Settings(backend="slow", queue_size=2, max_chunk_bytes=4096)
-        with TestClient(create_app(settings, meter)) as c:
-            with c.websocket_connect("/v1/stream") as ws:
-                ws.send_json({"type": "start"})
-                ws.receive_json()
-                for _ in range(40):
-                    ws.send_bytes(CHUNK)
-                ws.send_json({"type": "stop"})
-                frames = drain(ws)
+        with (
+            TestClient(create_app(settings, meter)) as c,
+            c.websocket_connect("/v1/stream") as ws,
+        ):
+            ws.send_json({"type": "start"})
+            ws.receive_json()
+            for _ in range(40):
+                ws.send_bytes(CHUNK)
+            ws.send_json({"type": "stop"})
+            frames = drain(ws)
     finally:
         backends._REGISTRY.pop("slow", None)
 
@@ -181,14 +184,16 @@ def test_backend_failure_surfaces_as_an_error_frame(meter):
     backends.register("flaky", lambda: MockBackend(fail_after=1))
     try:
         settings = Settings(backend="flaky", queue_size=64)
-        with TestClient(create_app(settings, meter)) as c:
-            with c.websocket_connect("/v1/stream") as ws:
-                ws.send_json({"type": "start"})
-                ws.receive_json()
-                for _ in range(4):
-                    ws.send_bytes(CHUNK)
-                ws.send_json({"type": "stop"})
-                frames = drain(ws)
+        with (
+            TestClient(create_app(settings, meter)) as c,
+            c.websocket_connect("/v1/stream") as ws,
+        ):
+            ws.send_json({"type": "start"})
+            ws.receive_json()
+            for _ in range(4):
+                ws.send_bytes(CHUNK)
+            ws.send_json({"type": "stop"})
+            frames = drain(ws)
         assert frames[-1]["type"] == "error"
         assert frames[-1]["code"] == "backend_error"
     finally:
@@ -212,18 +217,22 @@ def test_metrics_accumulate_across_sessions(client, meter):
 
 def test_echo_backend_can_be_selected(meter):
     settings = Settings(backend="echo", queue_size=64)
-    with TestClient(create_app(settings, meter)) as c:
-        with c.websocket_connect("/v1/stream") as ws:
-            ws.send_json({"type": "start"})
-            assert ws.receive_json()["backend"] == "echo"
-            ws.send_bytes(b"abcd")
-            ws.send_json({"type": "stop"})
-            frames = drain(ws)
+    with (
+        TestClient(create_app(settings, meter)) as c,
+        c.websocket_connect("/v1/stream") as ws,
+    ):
+        ws.send_json({"type": "start"})
+        assert ws.receive_json()["backend"] == "echo"
+        ws.send_bytes(b"abcd")
+        ws.send_json({"type": "stop"})
+        frames = drain(ws)
     assert any("received 4 bytes" in f.get("text", "") for f in frames)
 
 
 def test_unknown_backend_fails_at_startup(meter):
     settings = Settings(backend="does-not-exist")
-    with pytest.raises(Exception):
-        with TestClient(create_app(settings, meter)):
-            pass
+    with (
+        pytest.raises(BackendError, match="unknown backend"),
+        TestClient(create_app(settings, meter)),
+    ):
+        pass

@@ -31,8 +31,8 @@ def test_distribution_reservoir_is_bounded_but_counts_everything():
     d = Distribution("lat", max_samples=100)
     for v in range(1000):
         d.observe(float(v))
-    assert d.count == 1000            # every observation counted
-    assert len(d._samples) <= 100     # memory stays flat
+    assert d.count == 1000  # every observation counted
+    assert len(d._samples) <= 100  # memory stays flat
 
 
 def test_counters_and_gauges():
@@ -83,7 +83,7 @@ def test_prometheus_rendering_is_well_formed():
 def test_session_timer_ttfb_measures_from_first_audio():
     ticks = iter([0.0, 1.0, 1.5, 3.0])
     t = SessionTimer(clock=lambda: next(ticks))  # opened_at = 0.0
-    t.record_audio(320)          # first_audio_at = 1.0
+    t.record_audio(320)  # first_audio_at = 1.0
     t.record_transcript(is_final=False)  # first_transcript_at = 1.5
     assert t.ttfb_ms == pytest.approx(500.0)
 

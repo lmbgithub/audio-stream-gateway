@@ -9,7 +9,7 @@ produces and the shape client code has to handle.
 from __future__ import annotations
 
 import asyncio
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 from gateway.backends.base import AudioFormat, BackendError, Transcript
 

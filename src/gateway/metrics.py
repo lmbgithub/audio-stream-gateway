@@ -10,8 +10,9 @@ from __future__ import annotations
 
 import threading
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Iterable
+from typing import Any
 
 
 @dataclass
@@ -55,7 +56,7 @@ class Distribution:
         if not 0.0 <= q <= 1.0:
             raise ValueError("percentile must be between 0 and 1")
         ordered = sorted(self._samples)
-        idx = int(round(q * (len(ordered) - 1)))
+        idx = round(q * (len(ordered) - 1))
         return ordered[max(0, min(len(ordered) - 1, idx))]
 
     def snapshot(self) -> dict[str, Any]:
@@ -223,13 +224,15 @@ class SessionTimer:
         }
 
 
-def percentiles(values: Iterable[float], quantiles: tuple[float, ...] = (0.5, 0.95, 0.99)) -> dict[str, float]:
+def percentiles(
+    values: Iterable[float], quantiles: tuple[float, ...] = (0.5, 0.95, 0.99)
+) -> dict[str, float]:
     """Standalone percentile helper for ad-hoc analysis of collected latencies."""
     ordered = sorted(values)
     if not ordered:
         return {f"p{int(q * 100)}": 0.0 for q in quantiles}
     out = {}
     for q in quantiles:
-        idx = int(round(q * (len(ordered) - 1)))
+        idx = round(q * (len(ordered) - 1))
         out[f"p{int(q * 100)}"] = ordered[max(0, min(len(ordered) - 1, idx))]
     return out

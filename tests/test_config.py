@@ -11,7 +11,9 @@ def test_defaults_work_with_no_environment():
 
 
 def test_environment_overrides_are_applied():
-    s = Settings.from_env({"GATEWAY_PORT": "9000", "GATEWAY_BACKEND": "ECHO", "GATEWAY_QUEUE_SIZE": "8"})
+    s = Settings.from_env(
+        {"GATEWAY_PORT": "9000", "GATEWAY_BACKEND": "ECHO", "GATEWAY_QUEUE_SIZE": "8"}
+    )
     assert s.port == 9000
     assert s.backend == "echo"  # normalized to lowercase
     assert s.queue_size == 8

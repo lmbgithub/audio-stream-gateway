@@ -8,8 +8,9 @@ what lets the whole system be tested without credentials or network access.
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 class BackendError(RuntimeError):

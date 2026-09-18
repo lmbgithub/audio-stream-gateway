@@ -11,8 +11,9 @@ from __future__ import annotations
 import asyncio
 import uuid
 from collections import deque
+from collections.abc import AsyncIterator
 from enum import Enum
-from typing import Any, AsyncIterator
+from typing import Any
 
 from gateway.backends.base import ASRBackend, AudioFormat, BackendError
 from gateway.config import Settings
@@ -174,7 +175,8 @@ class StreamSession:
         if not self.backend.supports(audio):
             raise ProtocolError(
                 ErrorCode.UNSUPPORTED_AUDIO,
-                f"backend {self.backend.name!r} does not support encoding {audio.encoding!r}",
+                f"backend {self.backend.name!r} does not support "
+                f"encoding {audio.encoding!r}",
             )
 
         self.audio = audio
@@ -198,9 +200,7 @@ class StreamSession:
             return None
         if self.state in (SessionState.STOPPING, SessionState.CLOSED):
             return None
-        raise ProtocolError(
-            ErrorCode.INVALID_STATE, "'stop' received before 'start'"
-        )
+        raise ProtocolError(ErrorCode.INVALID_STATE, "'stop' received before 'start'")
 
     def handle_audio(self, chunk: bytes) -> None:
         """Accept one binary audio frame."""

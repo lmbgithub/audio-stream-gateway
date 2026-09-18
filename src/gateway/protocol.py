@@ -75,7 +75,7 @@ class StartRequest:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def parse(cls, payload: dict[str, Any]) -> "StartRequest":
+    def parse(cls, payload: dict[str, Any]) -> StartRequest:
         try:
             sample_rate = int(payload.get("sample_rate", 16000))
             channels = int(payload.get("channels", 1))
@@ -115,7 +115,8 @@ def decode_client_frame(raw: str) -> tuple[ClientMessage, dict[str, Any]]:
     except ValueError as exc:
         allowed = ", ".join(m.value for m in ClientMessage)
         raise ProtocolError(
-            ErrorCode.UNKNOWN_TYPE, f"unknown message type {raw_type!r}; expected one of: {allowed}"
+            ErrorCode.UNKNOWN_TYPE,
+            f"unknown message type {raw_type!r}; expected one of: {allowed}",
         ) from exc
 
     return message, payload
