@@ -1,15 +1,15 @@
 # audio-stream-gateway
 
-Real-time WebSocket gateway for streaming speech recognition, with latency
+A real-time WebSocket gateway for streaming speech recognition, with latency
 instrumentation and explicit backpressure.
 
-Accepts a live audio stream over a WebSocket, forwards it to a pluggable ASR
-backend, streams partial and final transcripts back, and measures what actually
-matters in a voice pipeline: how long the speaker waits before seeing the first
-word.
+It accepts a live audio stream over a WebSocket, forwards it to a pluggable ASR
+backend, streams partial and final transcripts back, and measures the number
+that matters most in a voice pipeline: how long the speaker waits before seeing
+the first word.
 
-Ships with a deterministic mock backend, so it runs end to end the moment you
-clone it. No API keys, no model downloads, no cloud account.
+A deterministic mock backend is included, so the project runs end to end the
+moment you clone it. No API keys, no model downloads, no cloud account.
 
 ```
 $ python client/demo_client.py --seconds 2
